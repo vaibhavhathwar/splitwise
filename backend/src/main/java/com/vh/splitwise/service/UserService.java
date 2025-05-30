@@ -19,14 +19,15 @@ public class UserService {
     this.userRepository = userRepository;
   }
 
-  private boolean signUp(User user) {
+  public boolean signUp(User user) {
     String password = user.getPassword();
     String encodedPassword = passwordEncoder.encode(password);
     user.setPassword(encodedPassword);
     userRepository.save(user);
+    return true;
   }
 
-  private boolean logIn(String email, String password) {
+  public boolean logIn(String email, String password) {
     User user = null;
     Optional<User> optionalUser = userRepository.findByEmail(email);
     if (optionalUser.isPresent())
