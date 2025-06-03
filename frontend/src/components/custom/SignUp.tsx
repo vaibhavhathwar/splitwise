@@ -11,10 +11,12 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
-const LogIn = () => {
+const SignUp = () => {
   const [formContent, setFormContent] = useState({
     email: "",
+    username: "",
     password: "",
+    repeatPassword: "",
   });
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -23,7 +25,7 @@ const LogIn = () => {
       [name]: value,
     }));
   };
-  const login = () => {
+  const signUp = () => {
     console.log(formContent);
   };
   return (
@@ -33,7 +35,7 @@ const LogIn = () => {
           <CardTitle className="text-2xl">
             <b>Welcome to SplitWise</b>
           </CardTitle>
-          <CardDescription className="text-xl">LogIn</CardDescription>
+          <CardDescription className="text-xl">SignUp</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <Label htmlFor="email">Email</Label>
@@ -45,6 +47,17 @@ const LogIn = () => {
             value={formContent.email}
             onChange={handleFormChange}
           />
+
+          <Label htmlFor="username">Username</Label>
+          <Input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Username"
+            value={formContent.username}
+            onChange={handleFormChange}
+          />
+
           <Label htmlFor="password1">Password</Label>
           <Input
             type="password"
@@ -54,10 +67,19 @@ const LogIn = () => {
             value={formContent.password}
             onChange={handleFormChange}
           />
+          <Label htmlFor="password2">Repeat Password</Label>
+          <Input
+            type="password"
+            id="repeatPassword"
+            name="repeatPassword"
+            placeholder="Repeat Password"
+            value={formContent.repeatPassword}
+            onChange={handleFormChange}
+          />
         </CardContent>
         <CardFooter>
-          <Button className="w-full" onClick={login}>
-            LogIn
+          <Button className="w-full" onClick={signUp}>
+            SignUp
           </Button>
         </CardFooter>
       </Card>
@@ -65,4 +87,4 @@ const LogIn = () => {
   );
 };
 
-export default LogIn;
+export default SignUp;
