@@ -10,7 +10,7 @@ frontend/dist
 frontend/dist-ssr
 frontend/*.local
 frontend/.vscode/*
-
+frontend/.vite/deps
 #Backend
 backend/target/
 backend/.vscode

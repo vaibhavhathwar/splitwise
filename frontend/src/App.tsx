@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
-import LogIn from "@/components/custom/LogIn";
-import SignUp from "@/components/custom/SignUp";
+import LogIn from "@/components/custom/auth/LogIn";
+import SignUp from "@/components/custom/auth/SignUp";
 
 const App = () => {
   return (
