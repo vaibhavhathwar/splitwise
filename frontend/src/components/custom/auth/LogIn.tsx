@@ -10,12 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import type { LogInForm, LogInFormErrors } from "@/types/authTypes";
+import { Link } from "react-router-dom";
 const LogIn = () => {
-  const [formContent, setFormContent] = useState({
+  const [formContent, setFormContent] = useState<LogInForm>({
     email: "",
     password: "",
   });
-  const [errors, setErrors] = useState({
+  const [errors, setErrors] = useState<LogInFormErrors>({
     email: "",
     password: "",
   });
@@ -28,14 +30,11 @@ const LogIn = () => {
   };
   const login = () => {
     console.log(formContent);
-    const email: string = formContent.email;
-    const password: string = formContent.password;
-    if (validateLogin(email, password)) {
+    if (validateLogin(formContent)) {
     }
   };
-  const validateLogin = (email: string, password: string): boolean => {
+  const validateLogin = ({ email, password }: LogInForm): boolean => {
     const emailRegex: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
     const newError = { email: "", password: "" };
     if (email === "") {
       newError.email = "Please enter the email";
@@ -86,10 +85,24 @@ const LogIn = () => {
             <p className="text-sm text-red-500">{errors.password}</p>
           )}
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex flex-col">
           <Button className="w-full" onClick={login}>
             LogIn
           </Button>
+          <div className="flex justify-between w-full mt-2">
+            <Link
+              to="/forgotpassword"
+              className=" text-sm underline-offset-4 hover:underline"
+            >
+              Forgot your password?
+            </Link>
+            <Link
+              to="/signup"
+              className=" text-sm underline-offset-4 hover:underline"
+            >
+              New to SplitWise? SignUp.
+            </Link>
+          </div>
         </CardFooter>
       </Card>
     </div>

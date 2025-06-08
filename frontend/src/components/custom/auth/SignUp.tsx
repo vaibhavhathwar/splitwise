@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import type { SignUpForm, SignUpFormErrors } from "@/types/auth";
+import type { SignUpForm, SignUpFormErrors } from "@/types/authTypes";
+import { Link } from "react-router-dom";
 
 const SignUp = () => {
   const [formContent, setFormContent] = useState<SignUpForm>({
@@ -136,10 +137,24 @@ const SignUp = () => {
             <p className="text-sm text-red-500">{errors.repeatPassword}</p>
           )}
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex flex-col">
           <Button className="w-full" onClick={signUp}>
             SignUp
           </Button>
+          <div className="flex justify-between w-full mt-2">
+            <Link
+              to="/login"
+              className=" text-sm underline-offset-4 hover:underline"
+            >
+              Have and account? Login.
+            </Link>
+            <Link
+              to="/forgotpassword"
+              className=" text-sm underline-offset-4 hover:underline"
+            >
+              Forgot your password?
+            </Link>
+          </div>
         </CardFooter>
       </Card>
     </div>
