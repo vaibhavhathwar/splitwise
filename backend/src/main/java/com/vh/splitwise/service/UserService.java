@@ -5,6 +5,10 @@ import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.vh.splitwise.DTO.LoginRequest;
+import com.vh.splitwise.DTO.LoginResponse;
+import com.vh.splitwise.DTO.SignupRequest;
+import com.vh.splitwise.DTO.SignupResponse;
 import com.vh.splitwise.entity.User;
 import com.vh.splitwise.repository.UserRepository;
 
@@ -19,25 +23,30 @@ public class UserService {
     this.userRepository = userRepository;
   }
 
-  public boolean signUp(User user) {
-    String password = user.getPassword();
-    String encodedPassword = passwordEncoder.encode(password);
-    user.setPassword(encodedPassword);
-    userRepository.save(user);
-    return true;
+  public SignupResponse signUp(SignupRequest signupRequest) {
+    Optional<User> user = userRepository.findByEmail(signupRequest.getEmail());
+    if (!user.isEmpty()) {
+      return new SignupResponse(false, "Email is already present");
+    }
+    if (!signupRequest.getPassword().equals(signupRequest.getRepeatPassword())) {
+      return new SignupResponse(false, "Password and repeat password should match");
+    }
+    User newUser = new User();
+    newUser.setEmail(signupRequest.getEmail());
+    newUser.setUsername(signupRequest.getUserName());
+    newUser.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+    User insertedUser = userRepository.save(newUser);
+    return new SignupResponse(true, "Signup successfull");
   }
 
-  public boolean logIn(String email, String password) {
-    User user = null;
-    Optional<User> optionalUser = userRepository.findByEmail(email);
-    if (optionalUser.isPresent())
-      user = optionalUser.get();
-    else
-      return false;
-    String encodedPasswrod = passwordEncoder.encode(password);
-    if (passwordEncoder.matches(password, encodedPasswrod))
-      return true;
-    else
-      return false;
+  public LoginResponse logIn(LoginRequest loginRequest) {
+    Optional<User> user = userRepository.findByEmail(loginRequest.getEmail());
+    if (user.isEmpty())
+      return new LoginResponse(false, "Please provide a valid email");
+    if (!passwordEncoder.matches(loginRequest.getPassword(), user.get().getPassword())) {
+      return new LoginResponse(false, "Please enter the correct password");
+    } else {
+      return new LoginResponse(true, "Login successful");
+    }
   }
 }

@@ -3,8 +3,12 @@ package com.vh.splitwise.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.vh.splitwise.entity.User;
+import com.vh.splitwise.DTO.LoginRequest;
+import com.vh.splitwise.DTO.LoginResponse;
+import com.vh.splitwise.DTO.SignupRequest;
+import com.vh.splitwise.DTO.SignupResponse;
 import com.vh.splitwise.service.UserService;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -18,17 +22,12 @@ public class AuthoController {
   }
 
   @PostMapping("login")
-  public boolean loginController(@RequestBody String email, @RequestBody String password) {
-    if (userService.logIn(email, password))
-      return true;
-    else
-      return false;
+  public LoginResponse loginController(@RequestBody LoginRequest loginRequest) {
+    return userService.logIn(loginRequest);
   }
 
   @PostMapping("signup")
-  public boolean signupController(@RequestBody User user) {
-    userService.signUp(user);
-    return true;
+  public SignupResponse signupController(@RequestBody SignupRequest signupRequest) {
+    return userService.signUp(signupRequest);
   }
-
 }
