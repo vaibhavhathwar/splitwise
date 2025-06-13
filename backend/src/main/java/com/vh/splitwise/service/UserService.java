@@ -1,26 +1,37 @@
 package com.vh.splitwise.service;
 
+import java.security.SecureRandom;
 import java.util.Optional;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.vh.splitwise.DTO.CheckEmailReq;
+import com.vh.splitwise.DTO.CheckEmailRes;
 import com.vh.splitwise.DTO.LoginRequest;
 import com.vh.splitwise.DTO.LoginResponse;
 import com.vh.splitwise.DTO.SignupRequest;
 import com.vh.splitwise.DTO.SignupResponse;
+import com.vh.splitwise.entity.Otp;
 import com.vh.splitwise.entity.User;
+import com.vh.splitwise.repository.OtpRepository;
 import com.vh.splitwise.repository.UserRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class UserService {
-
   private PasswordEncoder passwordEncoder;
   private UserRepository userRepository;
+  private OtpRepository otpRepository;
+  private EmailService emailService;
 
-  public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository) {
+  public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository,
+      OtpRepository otpRepository, EmailService emailService) {
     this.passwordEncoder = passwordEncoder;
     this.userRepository = userRepository;
+    this.otpRepository = otpRepository;
+    this.emailService = emailService;
   }
 
   public SignupResponse signUp(SignupRequest signupRequest) {
@@ -48,5 +59,27 @@ public class UserService {
     } else {
       return new LoginResponse(true, "Login successful");
     }
+  }
+
+  @Transactional
+  public CheckEmailRes checkEmail(CheckEmailReq checkEmailReq) {
+    Optional<User> user = userRepository.findByEmail(checkEmailReq.getEmail());
+    if (user.isEmpty())
+      return new CheckEmailRes("Please enter valid email address", false);
+    String email = user.get().getEmail();
+    String otp = generateOtp();
+    Otp newOtp = new Otp();
+    newOtp.setEmail(email);
+    newOtp.setOtp(otp);
+    otpRepository.deleteByEmail(email);
+    Otp setOtp = otpRepository.save(newOtp);
+    emailService.sendOtp(email, otp);
+    return new CheckEmailRes("Please enter the otp sent to your regestered email", true);
+  }
+
+  private String generateOtp() {
+    SecureRandom sr = new SecureRandom();
+    int otp = 100000 + sr.nextInt(900000);
+    return String.valueOf(otp);
   }
 }

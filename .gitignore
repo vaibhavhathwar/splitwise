@@ -14,3 +14,4 @@ frontend/.vite/deps
 #Backend
 backend/target/
 backend/.vscode
+backend/.env

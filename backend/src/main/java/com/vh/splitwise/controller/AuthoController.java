@@ -3,6 +3,8 @@ package com.vh.splitwise.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.vh.splitwise.DTO.CheckEmailReq;
+import com.vh.splitwise.DTO.CheckEmailRes;
 import com.vh.splitwise.DTO.LoginRequest;
 import com.vh.splitwise.DTO.LoginResponse;
 import com.vh.splitwise.DTO.SignupRequest;
@@ -29,5 +31,10 @@ public class AuthoController {
   @PostMapping("signup")
   public SignupResponse signupController(@RequestBody SignupRequest signupRequest) {
     return userService.signUp(signupRequest);
+  }
+
+  @PostMapping("checkEmail")
+  public CheckEmailRes checkEmailController(@RequestBody CheckEmailReq checkEmailReq) {
+    return userService.checkEmail(checkEmailReq);
   }
 }
