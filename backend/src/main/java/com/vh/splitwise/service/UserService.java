@@ -101,6 +101,7 @@ public class UserService {
     PasswordResetToken passToken = new PasswordResetToken();
     passToken.setEmail(email);
     passToken.setToken(uuid);
+    passwordResetTokenRepo.save(passToken);
     otpRepository.deleteByEmail(email);
     return new VerifyOtpRes("OTP verified. Reset your password", uuid, true);
   }
