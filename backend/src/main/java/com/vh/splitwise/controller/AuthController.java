@@ -3,12 +3,14 @@ package com.vh.splitwise.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.vh.splitwise.DTO.CheckEmailReq;
-import com.vh.splitwise.DTO.CheckEmailRes;
-import com.vh.splitwise.DTO.LoginRequest;
-import com.vh.splitwise.DTO.LoginResponse;
-import com.vh.splitwise.DTO.SignupRequest;
-import com.vh.splitwise.DTO.SignupResponse;
+import com.vh.splitwise.DTO.AuthDTO.CheckEmailReq;
+import com.vh.splitwise.DTO.AuthDTO.CheckEmailRes;
+import com.vh.splitwise.DTO.AuthDTO.LoginRequest;
+import com.vh.splitwise.DTO.AuthDTO.LoginResponse;
+import com.vh.splitwise.DTO.AuthDTO.SignupRequest;
+import com.vh.splitwise.DTO.AuthDTO.SignupResponse;
+import com.vh.splitwise.DTO.AuthDTO.VerifyOtpReq;
+import com.vh.splitwise.DTO.AuthDTO.VerifyOtpRes;
 import com.vh.splitwise.service.UserService;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,10 +18,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/auth")
-public class AuthoController {
+public class AuthController {
   private UserService userService;
 
-  public AuthoController(UserService userService) {
+  public AuthController(UserService userService) {
     this.userService = userService;
   }
 
@@ -33,8 +35,13 @@ public class AuthoController {
     return userService.signUp(signupRequest);
   }
 
-  @PostMapping("checkEmail")
+  @PostMapping("checkemail")
   public CheckEmailRes checkEmailController(@RequestBody CheckEmailReq checkEmailReq) {
     return userService.checkEmail(checkEmailReq);
+  }
+
+  @PostMapping("verifyotp")
+  public VerifyOtpRes verifyOtpController(@RequestBody VerifyOtpReq verifyOtpReq) {
+    return userService.verifyOtp(verifyOtpReq);
   }
 }

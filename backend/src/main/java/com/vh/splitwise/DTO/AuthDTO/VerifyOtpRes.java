@@ -1,4 +1,4 @@
-package com.vh.splitwise.DTO;
+package com.vh.splitwise.DTO.AuthDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginResponse {
-  private boolean isSuccess;
+public class VerifyOtpRes {
   private String message;
+  private String token;
+  private boolean isGenerated;
 }

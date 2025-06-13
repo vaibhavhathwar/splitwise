@@ -1,4 +1,4 @@
-package com.vh.splitwise.DTO;
+package com.vh.splitwise.DTO.AuthDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

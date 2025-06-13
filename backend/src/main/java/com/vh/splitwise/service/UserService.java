@@ -1,20 +1,26 @@
 package com.vh.splitwise.service;
 
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.vh.splitwise.DTO.CheckEmailReq;
-import com.vh.splitwise.DTO.CheckEmailRes;
-import com.vh.splitwise.DTO.LoginRequest;
-import com.vh.splitwise.DTO.LoginResponse;
-import com.vh.splitwise.DTO.SignupRequest;
-import com.vh.splitwise.DTO.SignupResponse;
+import com.vh.splitwise.DTO.AuthDTO.CheckEmailReq;
+import com.vh.splitwise.DTO.AuthDTO.CheckEmailRes;
+import com.vh.splitwise.DTO.AuthDTO.LoginRequest;
+import com.vh.splitwise.DTO.AuthDTO.LoginResponse;
+import com.vh.splitwise.DTO.AuthDTO.SignupRequest;
+import com.vh.splitwise.DTO.AuthDTO.SignupResponse;
+import com.vh.splitwise.DTO.AuthDTO.VerifyOtpReq;
+import com.vh.splitwise.DTO.AuthDTO.VerifyOtpRes;
 import com.vh.splitwise.entity.Otp;
+import com.vh.splitwise.entity.PasswordResetToken;
 import com.vh.splitwise.entity.User;
 import com.vh.splitwise.repository.OtpRepository;
+import com.vh.splitwise.repository.PasswordResetTokenRepo;
 import com.vh.splitwise.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -25,13 +31,15 @@ public class UserService {
   private UserRepository userRepository;
   private OtpRepository otpRepository;
   private EmailService emailService;
+  private PasswordResetTokenRepo passwordResetTokenRepo;
 
   public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository,
-      OtpRepository otpRepository, EmailService emailService) {
+      OtpRepository otpRepository, EmailService emailService, PasswordResetTokenRepo passwordResetTokenRepo) {
     this.passwordEncoder = passwordEncoder;
     this.userRepository = userRepository;
     this.otpRepository = otpRepository;
     this.emailService = emailService;
+    this.passwordResetTokenRepo = passwordResetTokenRepo;
   }
 
   public SignupResponse signUp(SignupRequest signupRequest) {
@@ -77,9 +85,33 @@ public class UserService {
     return new CheckEmailRes("Please enter the otp sent to your regestered email", true);
   }
 
+  @Transactional
+  public VerifyOtpRes verifyOtp(VerifyOtpReq verifyOtpReq) {
+    String email = verifyOtpReq.getEmail();
+    Optional<Otp> dbOtp = otpRepository.findByEmail(email);
+    if (dbOtp.isEmpty())
+      return new VerifyOtpRes("Ooops..! Something went wrong. Try again!", "", false);
+    LocalDateTime expiresAt = dbOtp.get().getExpiresAt();
+    LocalDateTime currTime = LocalDateTime.now();
+    if (currTime.isAfter(expiresAt))
+      return new VerifyOtpRes("OTP expired. Try again!", "", false);
+    if (!verifyOtpReq.getOtp().equals(dbOtp.get().getOtp()))
+      return new VerifyOtpRes("Wrong otp. Try again!", "", false);
+    String uuid = generateUUID();
+    PasswordResetToken passToken = new PasswordResetToken();
+    passToken.setEmail(email);
+    passToken.setToken(uuid);
+    otpRepository.deleteByEmail(email);
+    return new VerifyOtpRes("OTP verified. Reset your password", uuid, true);
+  }
+
   private String generateOtp() {
     SecureRandom sr = new SecureRandom();
     int otp = 100000 + sr.nextInt(900000);
     return String.valueOf(otp);
+  }
+
+  private String generateUUID() {
+    return UUID.randomUUID().toString();
   }
 }
