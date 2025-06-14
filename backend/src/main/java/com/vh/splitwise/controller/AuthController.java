@@ -9,6 +9,8 @@ import com.vh.splitwise.DTO.AuthDTO.LoginRequest;
 import com.vh.splitwise.DTO.AuthDTO.LoginResponse;
 import com.vh.splitwise.DTO.AuthDTO.SignupRequest;
 import com.vh.splitwise.DTO.AuthDTO.SignupResponse;
+import com.vh.splitwise.DTO.AuthDTO.UpdatePasswordReq;
+import com.vh.splitwise.DTO.AuthDTO.UpdatePasswordRes;
 import com.vh.splitwise.DTO.AuthDTO.VerifyOtpReq;
 import com.vh.splitwise.DTO.AuthDTO.VerifyOtpRes;
 import com.vh.splitwise.service.UserService;
@@ -43,5 +45,10 @@ public class AuthController {
   @PostMapping("verifyotp")
   public VerifyOtpRes verifyOtpController(@RequestBody VerifyOtpReq verifyOtpReq) {
     return userService.verifyOtp(verifyOtpReq);
+  }
+
+  @PostMapping("updatepassword")
+  public UpdatePasswordRes updatePasswordController(@RequestBody UpdatePasswordReq updatePasswordReq) {
+    return userService.updatePassword(updatePasswordReq);
   }
 }
