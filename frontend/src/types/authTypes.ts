@@ -31,3 +31,8 @@ export interface PasswordResetFormErrors {
   password: string;
   repeatPassword: string;
 }
+
+export interface LoginRes {
+  message: string;
+  success: boolean;
+}

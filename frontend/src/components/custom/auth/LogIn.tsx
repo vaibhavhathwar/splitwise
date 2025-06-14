@@ -12,6 +12,9 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import type { LogInForm, LogInFormErrors } from "@/types/authTypes";
 import { Link } from "react-router-dom";
+import { loginApi } from "@/services/authApi";
+import { Terminal } from "lucide-react";
+import { toast } from "sonner";
 const LogIn = () => {
   const [formContent, setFormContent] = useState<LogInForm>({
     email: "",
@@ -28,9 +31,16 @@ const LogIn = () => {
       [name]: value,
     }));
   };
-  const login = () => {
+  const login = async () => {
     console.log(formContent);
     if (validateLogin(formContent)) {
+      try {
+        const res = await loginApi(formContent);
+        if (!res.success) toast.error(res.message);
+        else toast.success(res.message);
+      } catch (err) {
+        throw err;
+      }
     }
   };
   const validateLogin = ({ email, password }: LogInForm): boolean => {
