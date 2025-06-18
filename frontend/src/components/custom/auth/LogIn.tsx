@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import type { LogInForm, LogInFormErrors } from "@/types/authTypes";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { loginApi } from "@/services/authApi";
 import { Terminal } from "lucide-react";
 import { toast } from "sonner";
@@ -31,13 +31,18 @@ const LogIn = () => {
       [name]: value,
     }));
   };
+  const navigate = useNavigate();
   const login = async () => {
     console.log(formContent);
     if (validateLogin(formContent)) {
       try {
         const res = await loginApi(formContent);
-        if (!res.success) toast.error(res.message);
-        else toast.success(res.message);
+        if (!res.success) {
+          toast.error(res.message);
+        } else {
+          toast.success(res.message);
+          navigate("/");
+        }
       } catch (err) {
         throw err;
       }

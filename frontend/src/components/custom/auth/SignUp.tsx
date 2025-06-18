@@ -11,7 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import type { SignUpForm, SignUpFormErrors } from "@/types/authTypes";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { signupApi } from "@/services/authApi";
+import { toast } from "sonner";
 
 const SignUp = () => {
   const [formContent, setFormContent] = useState<SignUpForm>({
@@ -33,10 +35,21 @@ const SignUp = () => {
       [name]: value,
     }));
   };
-  const signUp = (): void => {
+  const navigate = useNavigate();
+  const signUp = async (): Promise<void> => {
     console.log(formContent);
     if (validateSignup(formContent)) {
-      console.log("submitting");
+      try {
+        const res = await signupApi(formContent);
+        if (!res.success) {
+          toast.error(res.message);
+        } else {
+          toast.success(res.message);
+          navigate("/");
+        }
+      } catch (err) {
+        throw err;
+      }
     }
   };
   const validateSignup = ({

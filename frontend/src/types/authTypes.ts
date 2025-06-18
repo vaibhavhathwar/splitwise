@@ -36,3 +36,8 @@ export interface LoginRes {
   message: string;
   success: boolean;
 }
+
+export interface SignupRes {
+  message: string;
+  success: boolean;
+}

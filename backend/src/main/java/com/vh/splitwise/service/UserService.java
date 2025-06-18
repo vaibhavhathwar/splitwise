@@ -54,7 +54,7 @@ public class UserService {
     }
     User newUser = new User();
     newUser.setEmail(signupRequest.getEmail());
-    newUser.setUsername(signupRequest.getUserName());
+    newUser.setUsername(signupRequest.getUsername());
     newUser.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
     User insertedUser = userRepository.save(newUser);
     return new SignupResponse(true, "Signup successfull");
