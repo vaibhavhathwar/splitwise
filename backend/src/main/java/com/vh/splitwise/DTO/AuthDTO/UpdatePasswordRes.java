@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UpdatePasswordRes {
   private String message;
-  private boolean isUpdated;
+  private boolean passwordUpdated;
 }

@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CheckEmailRes {
   private String message;
-  private boolean isOtpGenerated;
+  private boolean otpGenerated;
 }

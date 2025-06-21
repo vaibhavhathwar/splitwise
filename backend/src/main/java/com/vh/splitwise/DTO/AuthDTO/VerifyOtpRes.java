@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class VerifyOtpRes {
   private String message;
   private String token;
-  private boolean isGenerated;
+  private boolean otpGenerated;
 }

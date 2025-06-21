@@ -41,3 +41,19 @@ export interface SignupRes {
   message: string;
   success: boolean;
 }
+
+export interface CheckEmailRes {
+  message: string;
+  otpGenerated: boolean;
+}
+
+export interface VerifyOtpRes {
+  message: string;
+  token: string;
+  otpGenerated: boolean;
+}
+
+export interface UpdatePasswordRes {
+  message: string;
+  passwordUpdated: boolean;
+}

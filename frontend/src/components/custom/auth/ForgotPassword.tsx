@@ -14,13 +14,20 @@ import type {
   PasswordResetForm,
   PasswordResetFormErrors,
 } from "@/types/authTypes";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  checkemailApi,
+  updatePasswordApi,
+  verifyOtpApi,
+} from "@/services/authApi";
+import { toast } from "sonner";
 const ForgotPassword = () => {
   const [stage, setStage] = useState<number>(1);
   const [email, setEmail] = useState<string>("");
   const [emailError, setEmailError] = useState<string>("");
-  const [otp, setOtp] = useState<number>();
+  const [otp, setOtp] = useState<string>("");
   const [otpError, setOtpError] = useState<string>();
+  const [token, setToken] = useState<string>("");
   const [password, setPassword] = useState<PasswordResetForm>({
     password: "",
     repeatPassword: "",
@@ -37,7 +44,8 @@ const ForgotPassword = () => {
       [name]: value,
     }));
   };
-  const getOtp = () => {
+  const navigate = useNavigate();
+  const checkEmail = async () => {
     const emailRegex: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     let error = "";
     if (email === "") {
@@ -47,28 +55,46 @@ const ForgotPassword = () => {
     }
     setEmailError(error);
     if (error === "") {
-      setStage(2);
+      try {
+        const res = await checkemailApi(email);
+        console.log(res);
+        if (res.otpGenerated) {
+          toast.success(res.message);
+          setStage(2);
+        } else {
+          toast.error(res.message);
+        }
+      } catch (err) {
+        throw err;
+      }
     }
   };
-  const verifyOtp = () => {
+  const verifyOtp = async () => {
     let error = "";
-    if (otp) {
-      if (otp.toString().length === 6) {
-        if (true) console.log("OTP varified");
-        else error = "Wrong otp";
-      } else {
-        error = "OTP length should be 6";
-        setOtpError(error);
-      }
+    if (otp != "") {
+      console.log(otp);
+      if (otp.toString().length != 6) error = "OTP length should be 6";
     } else {
       error = "Please enter OTP";
     }
     setOtpError(error);
-    if ((error = "")) {
-      setStage(3);
+    if (error === "" && otp != undefined) {
+      try {
+        const res = await verifyOtpApi(email, otp?.toString());
+        if (res.otpGenerated) {
+          setToken(res.token);
+          toast.success(res.message);
+          console.log(res);
+          setStage(3);
+        } else {
+          toast.error(res.message);
+        }
+      } catch (err) {
+        throw err;
+      }
     }
   };
-  const resetPassword = () => {
+  const updatePassword = async () => {
     const error: PasswordResetFormErrors = { password: "", repeatPassword: "" };
     if (password.password === "") {
       error.password = "Please enter the password";
@@ -78,6 +104,24 @@ const ForgotPassword = () => {
       error.repeatPassword = "Both the password should match";
     }
     setPasswordError(error);
+    if (error.password === "" && error.repeatPassword === "") {
+      try {
+        const res = await updatePasswordApi(
+          email,
+          password.password,
+          password.repeatPassword,
+          token
+        );
+        if (res.passwordUpdated) {
+          toast.success(res.message);
+          navigate("/login");
+        } else {
+          toast.error(res.message);
+        }
+      } catch (err) {
+        throw err;
+      }
+    }
   };
   return (
     <div className="flex justify-center items-center h-screen">
@@ -104,7 +148,7 @@ const ForgotPassword = () => {
               {emailError && (
                 <p className="text-sm text-red-500">{emailError}</p>
               )}
-              <Button className="w-full" onClick={getOtp}>
+              <Button className="w-full" onClick={checkEmail}>
                 Get OTP
               </Button>
             </>
@@ -116,12 +160,18 @@ const ForgotPassword = () => {
               {" "}
               <Label htmlFor="otp">OTP</Label>
               <Input
-                type="number"
+                type="text"
                 id="otp"
                 name="otp"
                 placeholder="OTP"
                 value={otp}
-                onChange={(e) => setOtp(Number(e.target.value))}
+                onChange={(e) => {
+                  const input = e.target.value;
+                  if (/^\d*$/.test(input)) {
+                    setOtp(input);
+                  }
+                }}
+                maxLength={6}
               />
               {otpError && <p className="text-sm text-red-500">{otpError}</p>}
               <Button className="w-full" onClick={verifyOtp}>
@@ -147,7 +197,7 @@ const ForgotPassword = () => {
               )}
               <Label htmlFor="repeatPassword">Repeat New Password</Label>
               <Input
-                type="repeatPassword"
+                type="password"
                 id="repeatPassword"
                 name="repeatPassword"
                 placeholder="Repeat New Password"
@@ -159,7 +209,7 @@ const ForgotPassword = () => {
                   {passwordError.repeatPassword}
                 </p>
               )}
-              <Button className="w-full" onClick={resetPassword}>
+              <Button className="w-full" onClick={updatePassword}>
                 Reset Password
               </Button>
             </>
