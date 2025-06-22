@@ -4,7 +4,10 @@ import LogIn from "@/components/custom/auth/LogIn";
 import SignUp from "@/components/custom/auth/SignUp";
 import ForgotPassword from "./components/custom/auth/ForgotPassword";
 import { Toaster } from "sonner";
-import Home from "./components/custom/Home/Home";
+import Dashboard from "./components/custom/Dashboard/Dashboard";
+import Home from "./components/custom/Dashboard/Home";
+import Groups from "./components/custom/Dashboard/Groups";
+import Friends from "./components/custom/Dashboard/Friends";
 
 const App = () => {
   return (
@@ -13,7 +16,11 @@ const App = () => {
         <Route path="/login" element={<LogIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Dashboard />}>
+          <Route index element={<Home />} />
+          <Route path="groups" element={<Groups />} />
+          <Route path="friends" element={<Friends />} />
+        </Route>
       </Routes>
       <Toaster position="top-right" richColors />
     </BrowserRouter>
