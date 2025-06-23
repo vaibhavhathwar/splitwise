@@ -21,6 +21,7 @@ import com.vh.splitwise.DTO.AuthDTO.VerifyOtpRes;
 import com.vh.splitwise.entity.Otp;
 import com.vh.splitwise.entity.PasswordResetToken;
 import com.vh.splitwise.entity.User;
+import com.vh.splitwise.mapper.UserMapper;
 import com.vh.splitwise.repository.OtpRepository;
 import com.vh.splitwise.repository.PasswordResetTokenRepo;
 import com.vh.splitwise.repository.UserRepository;
@@ -29,34 +30,33 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class UserService {
-  private PasswordEncoder passwordEncoder;
-  private UserRepository userRepository;
-  private OtpRepository otpRepository;
-  private EmailService emailService;
-  private PasswordResetTokenRepo passwordResetTokenRepo;
+  private final PasswordEncoder passwordEncoder;
+  private final UserRepository userRepository;
+  private final OtpRepository otpRepository;
+  private final EmailService emailService;
+  private final PasswordResetTokenRepo passwordResetTokenRepo;
+  private final UserMapper userMapper;
 
   public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository,
-      OtpRepository otpRepository, EmailService emailService, PasswordResetTokenRepo passwordResetTokenRepo) {
+      OtpRepository otpRepository, EmailService emailService, PasswordResetTokenRepo passwordResetTokenRepo,
+      UserMapper userMapper) {
     this.passwordEncoder = passwordEncoder;
     this.userRepository = userRepository;
     this.otpRepository = otpRepository;
     this.emailService = emailService;
     this.passwordResetTokenRepo = passwordResetTokenRepo;
+    this.userMapper = userMapper;
   }
 
   public SignupResponse signUp(SignupRequest signupRequest) {
-    Optional<User> user = userRepository.findByEmail(signupRequest.getEmail());
-    if (!user.isEmpty()) {
-      return new SignupResponse(false, "Email is already present");
-    }
     if (!signupRequest.getPassword().equals(signupRequest.getRepeatPassword())) {
       return new SignupResponse(false, "Password and repeat password should match");
     }
-    User newUser = new User();
-    newUser.setEmail(signupRequest.getEmail());
-    newUser.setUsername(signupRequest.getUsername());
-    newUser.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-    User insertedUser = userRepository.save(newUser);
+    if (userRepository.findByEmail(signupRequest.getEmail()).isPresent()) {
+      return new SignupResponse(false, "Email is already present");
+    }
+    User newUser = userMapper.toEntity(signupRequest);
+    userRepository.save(newUser);
     return new SignupResponse(true, "Signup successfull");
   }
 
