@@ -15,6 +15,9 @@ import com.vh.splitwise.DTO.AuthDTO.VerifyOtpReq;
 import com.vh.splitwise.DTO.AuthDTO.VerifyOtpRes;
 import com.vh.splitwise.service.UserService;
 
+import jakarta.servlet.http.HttpServletRequest;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -28,8 +31,9 @@ public class AuthController {
   }
 
   @PostMapping("login")
-  public LoginResponse loginController(@RequestBody LoginRequest loginRequest) {
-    return userService.logIn(loginRequest);
+  public ResponseEntity<LoginResponse> loginController(@RequestBody LoginRequest loginRequest,
+      HttpServletRequest request) {
+    return ResponseEntity.ok(userService.logIn(loginRequest, request));
   }
 
   @PostMapping("signup")

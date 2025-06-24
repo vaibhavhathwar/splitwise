@@ -5,6 +5,13 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +33,7 @@ import com.vh.splitwise.repository.OtpRepository;
 import com.vh.splitwise.repository.PasswordResetTokenRepo;
 import com.vh.splitwise.repository.UserRepository;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -36,16 +44,18 @@ public class UserService {
   private final EmailService emailService;
   private final PasswordResetTokenRepo passwordResetTokenRepo;
   private final UserMapper userMapper;
+  private final AuthenticationManager authenticationManager;
 
   public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository,
       OtpRepository otpRepository, EmailService emailService, PasswordResetTokenRepo passwordResetTokenRepo,
-      UserMapper userMapper) {
+      UserMapper userMapper, AuthenticationManager authenticationManager) {
     this.passwordEncoder = passwordEncoder;
     this.userRepository = userRepository;
     this.otpRepository = otpRepository;
     this.emailService = emailService;
     this.passwordResetTokenRepo = passwordResetTokenRepo;
     this.userMapper = userMapper;
+    this.authenticationManager = authenticationManager;
   }
 
   public SignupResponse signUp(SignupRequest signupRequest) {
@@ -60,14 +70,17 @@ public class UserService {
     return new SignupResponse(true, "Signup successfull");
   }
 
-  public LoginResponse logIn(LoginRequest loginRequest) {
-    Optional<User> user = userRepository.findByEmail(loginRequest.getEmail());
-    if (user.isEmpty())
-      return new LoginResponse(false, "Please provide a valid email");
-    if (!passwordEncoder.matches(loginRequest.getPassword(), user.get().getPassword())) {
-      return new LoginResponse(false, "Please enter the correct password");
-    } else {
+  public LoginResponse logIn(LoginRequest loginRequest, HttpServletRequest request) {
+    try {
+      Authentication authentication = authenticationManager.authenticate(
+          new UsernamePasswordAuthenticationToken(
+              loginRequest.getEmail(),
+              loginRequest.getPassword()));
+      SecurityContextHolder.getContext().setAuthentication(authentication);
+      request.getSession(true);
       return new LoginResponse(true, "Login successful");
+    } catch (BadCredentialsException ex) {
+      return new LoginResponse(false, "Invalid email or password");
     }
   }
 
