@@ -86,16 +86,16 @@ public class UserService {
 
   @Transactional
   public CheckEmailRes checkEmail(CheckEmailReq checkEmailReq) {
-    Optional<User> user = userRepository.findByEmail(checkEmailReq.getEmail());
+    String email = checkEmailReq.getEmail();
+    Optional<User> user = userRepository.findByEmail(email);
     if (user.isEmpty())
       return new CheckEmailRes("Please enter valid email address", false);
-    String email = user.get().getEmail();
+    otpRepository.deleteByEmail(email);
     String otp = generateOtp();
     Otp newOtp = new Otp();
     newOtp.setEmail(email);
     newOtp.setOtp(otp);
-    otpRepository.deleteByEmail(email);
-    Otp setOtp = otpRepository.save(newOtp);
+    otpRepository.save(newOtp);
     emailService.sendOtp(email, otp);
     return new CheckEmailRes("Please enter the otp sent to your regestered email", true);
   }
@@ -103,14 +103,17 @@ public class UserService {
   @Transactional
   public VerifyOtpRes verifyOtp(VerifyOtpReq verifyOtpReq) {
     String email = verifyOtpReq.getEmail();
+    String inputOtp = verifyOtpReq.getOtp();
     Optional<Otp> dbOtp = otpRepository.findByEmail(email);
     if (dbOtp.isEmpty())
       return new VerifyOtpRes("Ooops..! Something went wrong. Try again!", "", false);
     LocalDateTime expiresAt = dbOtp.get().getExpiresAt();
     LocalDateTime currTime = LocalDateTime.now();
-    if (currTime.isAfter(expiresAt))
+    if (currTime.isAfter(expiresAt)) {
+      otpRepository.deleteByEmail(email);
       return new VerifyOtpRes("OTP expired. Try again!", "", false);
-    if (!verifyOtpReq.getOtp().equals(dbOtp.get().getOtp()))
+    }
+    if (!inputOtp.equals(dbOtp.get().getOtp()))
       return new VerifyOtpRes("Wrong otp. Try again!", "", false);
     String uuid = generateUUID();
     PasswordResetToken passToken = new PasswordResetToken();
@@ -118,7 +121,6 @@ public class UserService {
     passToken.setToken(uuid);
     passwordResetTokenRepo.deleteByEmail(email);
     passwordResetTokenRepo.save(passToken);
-    otpRepository.deleteByEmail(email);
     return new VerifyOtpRes("OTP verified. Reset your password", uuid, true);
   }
 

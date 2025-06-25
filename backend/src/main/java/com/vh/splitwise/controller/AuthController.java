@@ -33,26 +33,50 @@ public class AuthController {
   @PostMapping("login")
   public ResponseEntity<LoginResponse> loginController(@RequestBody LoginRequest loginRequest,
       HttpServletRequest request) {
-    return ResponseEntity.ok(userService.logIn(loginRequest, request));
+    LoginResponse res = userService.logIn(loginRequest, request);
+    if (res.isSuccess())
+      return ResponseEntity.ok(res);
+    else
+      return ResponseEntity.badRequest().body(res);
   }
 
   @PostMapping("signup")
-  public SignupResponse signupController(@RequestBody SignupRequest signupRequest) {
-    return userService.signUp(signupRequest);
+  public ResponseEntity<SignupResponse> signupController(@RequestBody SignupRequest signupRequest) {
+    SignupResponse res = userService.signUp(signupRequest);
+    if (res.isSuccess())
+      return ResponseEntity.ok(res);
+    else
+      return ResponseEntity.badRequest().body(res);
   }
 
   @PostMapping("checkemail")
-  public CheckEmailRes checkEmailController(@RequestBody CheckEmailReq checkEmailReq) {
-    return userService.checkEmail(checkEmailReq);
+  public ResponseEntity<CheckEmailRes> checkEmailController(@RequestBody CheckEmailReq checkEmailReq) {
+    CheckEmailRes res = userService.checkEmail(checkEmailReq);
+    if (res.isOtpGenerated()) {
+      return ResponseEntity.ok(res);
+    } else {
+      return ResponseEntity.badRequest().body(res);
+    }
   }
 
   @PostMapping("verifyotp")
-  public VerifyOtpRes verifyOtpController(@RequestBody VerifyOtpReq verifyOtpReq) {
-    return userService.verifyOtp(verifyOtpReq);
+  public ResponseEntity<VerifyOtpRes> verifyOtpController(@RequestBody VerifyOtpReq verifyOtpReq) {
+    VerifyOtpRes res = userService.verifyOtp(verifyOtpReq);
+    if (res.isOtpGenerated()) {
+      return ResponseEntity.ok(res);
+    } else {
+      return ResponseEntity.badRequest().body(res);
+    }
   }
 
   @PostMapping("updatepassword")
-  public UpdatePasswordRes updatePasswordController(@RequestBody UpdatePasswordReq updatePasswordReq) {
-    return userService.updatePassword(updatePasswordReq);
+  public ResponseEntity<UpdatePasswordRes> updatePasswordController(@RequestBody UpdatePasswordReq updatePasswordReq) {
+    UpdatePasswordRes res = userService.updatePassword(updatePasswordReq);
+    if (res.isPasswordUpdated()) {
+      return ResponseEntity.ok(res);
+    } else {
+      return ResponseEntity.badRequest().body(res);
+    }
   }
+
 }
