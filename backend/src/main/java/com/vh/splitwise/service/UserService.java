@@ -11,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ import com.vh.splitwise.repository.PasswordResetTokenRepo;
 import com.vh.splitwise.repository.UserRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -76,8 +78,13 @@ public class UserService {
           new UsernamePasswordAuthenticationToken(
               loginRequest.getEmail(),
               loginRequest.getPassword()));
-      SecurityContextHolder.getContext().setAuthentication(authentication);
-      request.getSession(true);
+      SecurityContext context = SecurityContextHolder.createEmptyContext();
+      context.setAuthentication(authentication);
+      SecurityContextHolder.setContext(context);
+
+      HttpSession session = request.getSession(true);
+      session.setAttribute("SPRING_SECURITY_CONTEXT", context);
+
       return new LoginResponse(true, "Login successful");
     } catch (BadCredentialsException ex) {
       return new LoginResponse(false, "Invalid email or password");

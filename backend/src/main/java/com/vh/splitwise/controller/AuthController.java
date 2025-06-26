@@ -18,6 +18,7 @@ import com.vh.splitwise.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -77,6 +78,13 @@ public class AuthController {
     } else {
       return ResponseEntity.badRequest().body(res);
     }
+  }
+
+  @PostMapping("/logout")
+  public ResponseEntity<?> logout(HttpServletRequest request) {
+    request.getSession(false).invalidate();
+    SecurityContextHolder.clearContext();
+    return ResponseEntity.ok("Logged out successfully");
   }
 
 }
