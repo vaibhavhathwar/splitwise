@@ -20,6 +20,7 @@ import com.vh.splitwise.DTO.AuthDTO.CheckEmailReq;
 import com.vh.splitwise.DTO.AuthDTO.CheckEmailRes;
 import com.vh.splitwise.DTO.AuthDTO.LoginRequest;
 import com.vh.splitwise.DTO.AuthDTO.LoginResponse;
+import com.vh.splitwise.DTO.AuthDTO.LogoutRes;
 import com.vh.splitwise.DTO.AuthDTO.SignupRequest;
 import com.vh.splitwise.DTO.AuthDTO.SignupResponse;
 import com.vh.splitwise.DTO.AuthDTO.UpdatePasswordReq;
@@ -29,6 +30,13 @@ import com.vh.splitwise.DTO.AuthDTO.VerifyOtpRes;
 import com.vh.splitwise.entity.Otp;
 import com.vh.splitwise.entity.PasswordResetToken;
 import com.vh.splitwise.entity.User;
+import com.vh.splitwise.exception.authException.EmailAlreadyExistsException;
+import com.vh.splitwise.exception.authException.EmailNotFoundException;
+import com.vh.splitwise.exception.authException.InvalidCredentialsException;
+import com.vh.splitwise.exception.authException.LogoutException;
+import com.vh.splitwise.exception.authException.OtpException;
+import com.vh.splitwise.exception.authException.PasswordMismatchException;
+import com.vh.splitwise.exception.authException.PasswordResetException;
 import com.vh.splitwise.mapper.UserMapper;
 import com.vh.splitwise.repository.OtpRepository;
 import com.vh.splitwise.repository.PasswordResetTokenRepo;
@@ -61,12 +69,10 @@ public class UserService {
   }
 
   public SignupResponse signUp(SignupRequest signupRequest) {
-    if (!signupRequest.getPassword().equals(signupRequest.getRepeatPassword())) {
-      return new SignupResponse(false, "Password and repeat password should match");
-    }
-    if (userRepository.findByEmail(signupRequest.getEmail()).isPresent()) {
-      return new SignupResponse(false, "Email is already present");
-    }
+    if (!signupRequest.getPassword().equals(signupRequest.getRepeatPassword()))
+      throw new PasswordMismatchException("Password and repeat password should match");
+    if (userRepository.findByEmail(signupRequest.getEmail()).isPresent())
+      throw new EmailAlreadyExistsException("Email is already present");
     User newUser = userMapper.toEntity(signupRequest);
     userRepository.save(newUser);
     return new SignupResponse(true, "Signup successfull");
@@ -87,7 +93,7 @@ public class UserService {
 
       return new LoginResponse(true, "Login successful");
     } catch (BadCredentialsException ex) {
-      return new LoginResponse(false, "Invalid email or password");
+      throw new InvalidCredentialsException("Invalid email or password");
     }
   }
 
@@ -96,7 +102,7 @@ public class UserService {
     String email = checkEmailReq.getEmail();
     Optional<User> user = userRepository.findByEmail(email);
     if (user.isEmpty())
-      return new CheckEmailRes("Please enter valid email address", false);
+      throw new EmailNotFoundException("Please enter valid email address");
     otpRepository.deleteByEmail(email);
     String otp = generateOtp();
     Otp newOtp = new Otp();
@@ -113,15 +119,15 @@ public class UserService {
     String inputOtp = verifyOtpReq.getOtp();
     Optional<Otp> dbOtp = otpRepository.findByEmail(email);
     if (dbOtp.isEmpty())
-      return new VerifyOtpRes("Ooops..! Something went wrong. Try again!", "", false);
+      throw new OtpException("Ooops..! Something went wrong. Try again!");
     LocalDateTime expiresAt = dbOtp.get().getExpiresAt();
     LocalDateTime currTime = LocalDateTime.now();
     if (currTime.isAfter(expiresAt)) {
       otpRepository.deleteByEmail(email);
-      return new VerifyOtpRes("OTP expired. Try again!", "", false);
+      throw new OtpException("OTP expired. Try again!");
     }
     if (!inputOtp.equals(dbOtp.get().getOtp()))
-      return new VerifyOtpRes("Wrong otp. Try again!", "", false);
+      throw new OtpException("Wrong otp. Try again!");
     String uuid = generateUUID();
     PasswordResetToken passToken = new PasswordResetToken();
     passToken.setEmail(email);
@@ -136,28 +142,37 @@ public class UserService {
     String email = updatePasswordReq.getEmail();
     Optional<PasswordResetToken> optionalDbToken = passwordResetTokenRepo.findByEmail(email);
     if (optionalDbToken.isEmpty())
-      return new UpdatePasswordRes("Ooops..! Something went wrong. Try again!", false);
+      throw new PasswordResetException("Ooops..! Something went wrong. Try again!");
     PasswordResetToken passwordResetToken = optionalDbToken.get();
     LocalDateTime currTime = LocalDateTime.now();
     LocalDateTime tokenTime = passwordResetToken.getExpiresAt();
     if (currTime.isAfter(tokenTime))
-      return new UpdatePasswordRes("Time out. Try again", false);
+      throw new PasswordResetException("Time out. Try again");
     String reqToken = updatePasswordReq.getToken();
     String dbToken = passwordResetToken.getToken();
     if (!reqToken.equals(dbToken))
-      return new UpdatePasswordRes("Unauthorized action.", false);
+      throw new PasswordResetException("Unauthorized action.");
     String password = updatePasswordReq.getPassword();
     String repeatPassword = updatePasswordReq.getRepeatPassword();
     if (!password.equals(repeatPassword))
-      return new UpdatePasswordRes("Password does not match", false);
+      throw new PasswordResetException("Password does not match");
     Optional<User> optionalUser = userRepository.findByEmail(email);
     if (optionalUser.isEmpty())
-      return new UpdatePasswordRes("Ooops..! User not found", false);
+      throw new PasswordResetException("Ooops..! User not found");
     User user = optionalUser.get();
     user.setPassword(passwordEncoder.encode(password));
     userRepository.save(user);
     passwordResetTokenRepo.delete(passwordResetToken);
     return new UpdatePasswordRes("Password reset.", true);
+  }
+
+  public LogoutRes logout(HttpServletRequest request) {
+    HttpSession session = request.getSession(false);
+    if (session == null)
+      throw new LogoutException("Already logged out");
+    session.invalidate();
+    SecurityContextHolder.clearContext();
+    return new LogoutRes("Logout successful", true);
   }
 
   private String generateOtp() {
