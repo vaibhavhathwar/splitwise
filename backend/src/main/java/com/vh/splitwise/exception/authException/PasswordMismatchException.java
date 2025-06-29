@@ -1,7 +1,13 @@
 package com.vh.splitwise.exception.authException;
 
 public class PasswordMismatchException extends RuntimeException {
-  public PasswordMismatchException(String message) {
+  private final String email;
+  public PasswordMismatchException(String message, String email) {
     super(message);
+    this.email = email;
+
+  }
+  public String getEmail() {
+    return email;
   }
 }

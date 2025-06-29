@@ -2,6 +2,7 @@ package com.vh.splitwise.service;
 
 import java.util.List;
 
+import com.vh.splitwise.exception.authException.EmailNotFoundException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,9 +21,9 @@ public class CustomUserDetailService implements UserDetailsService {
   }
 
   @Override
-  public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+  public UserDetails loadUserByUsername(String email) {
     User user = userRepository.findByEmail(email)
-        .orElseThrow(() -> new UsernameNotFoundException("Email not found"));
+        .orElseThrow(() -> new EmailNotFoundException("Email not found while creating User", email));
     return new org.springframework.security.core.userdetails.User(
         user.getEmail(),
         user.getPassword(),

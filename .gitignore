@@ -16,3 +16,4 @@ backend/target/
 backend/.vscode
 backend/.env
 backend/.idea
+backend/logs/*
